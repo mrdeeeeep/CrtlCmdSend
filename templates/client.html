@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CtrlCmdSend - Client Mode</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container client-mode-active">
+        <div class="sidebar-toggle" id="sidebarToggle">
+            <span class="toggle-icon"></span>
+            <span class="toggle-text">Connection Log</span>
+        </div>
+
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>Connection Log</h3>
+            </div>
+            <div class="sidebar-content">
+                <div class="log-entry">Client ready...</div>
+            </div>
+        </aside>
+
+        <div class="main-wrapper">
+            <header class="app-header">
+                <h1 class="logo">CtrlCmdSend</h1>
+                <div class="spacer"></div>
+            </header>
+            
+            <main class="main-content">
+                <div class="content-area">
+                    <div class="connection-info-box">
+                        <div class="connection-header">
+                            <h2>Connection Information</h2>
+                        </div>
+                        <div class="connection-content">
+                            <div class="device-info">
+                                <div class="info-group">
+                                    <strong>Device Name:</strong>
+                                    <span id="deviceName">Loading...</span>
+                                </div>
+                                <div class="info-group">
+                                    <strong>IP Address:</strong>
+                                    <span id="deviceIp">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="server-connection">
+                                <div class="input-group">
+                                    <input type="text" id="serverIp" placeholder="Enter server IP address" class="ip-input">
+                                    <button class="connect-button" id="connectButton">Connect</button>
+                                </div>
+                                <div class="status-indicator">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">Ready to connect</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="file-sharing-section">
+                        <div class="file-list">
+                            <h3>Shared Files</h3>
+                            <div class="dropzone" id="fileDropzone">
+                                <div class="dropzone-text">Drop files here or click to select</div>
+                            </div>
+                            <div class="files-container" id="sharedFiles">
+                                <!-- Files will be listed here dynamically -->
+                            </div>
+                        </div>
+                        
+                        <div class="transfer-status">
+                            <h3>Transfer Progress</h3>
+                            <div class="progress-container" id="progressContainer">
+                                <!-- Transfer progress will be shown here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

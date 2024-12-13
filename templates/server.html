@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CtrlCmdSend - Server Mode</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container server-mode-active">
+        <div class="sidebar-toggle" id="sidebarToggle">
+            <span class="toggle-icon"></span>
+            <span class="toggle-text">Connection Log</span>
+        </div>
+
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>Connection Log</h3>
+            </div>
+            <div class="sidebar-content">
+                <div class="log-entry">System initialized...</div>
+                <div class="log-entry">Listening on port 8000...</div>
+            </div>
+        </aside>
+
+        <div class="main-wrapper">
+            <header class="app-header">
+                <h1 class="logo">CtrlCmdSend</h1>
+                <div class="spacer"></div>
+            </header>
+            
+            <main class="main-content">
+                <div class="content-area">
+                    <div class="connection-info-box">
+                        <div class="connection-header">
+                            <h2>Connection Information</h2>
+                        </div>
+                        <div class="connection-content">
+                            <div class="device-info">
+                                <div class="info-group">
+                                    <strong>Device Name:</strong>
+                                    <span id="deviceName">Loading...</span>
+                                </div>
+                                <div class="info-group">
+                                    <strong>IP Address:</strong>
+                                    <span id="deviceIp">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="client-info">
+                                <div class="info-group">
+                                    <strong>Client Name:</strong>
+                                    <span id="clientName">No client connected</span>
+                                </div>
+                                <div class="info-group">
+                                    <strong>Client IP:</strong>
+                                    <span id="clientIp">-</span>
+                                </div>
+                                <div class="status-indicator">
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">Waiting for client...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="file-sharing-section">
+                        <div class="file-list">
+                            <h3>Shared Files</h3>
+                            <div class="dropzone" id="fileDropzone">
+                                <div class="dropzone-text">Drop files here or click to select</div>
+                            </div>
+                            <div class="files-container" id="sharedFiles">
+                                <!-- Files will be listed here dynamically -->
+                            </div>
+                        </div>
+                        
+                        <div class="transfer-status">
+                            <h3>Transfer Progress</h3>
+                            <div class="progress-container" id="progressContainer">
+                                <!-- Transfer progress will be shown here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
