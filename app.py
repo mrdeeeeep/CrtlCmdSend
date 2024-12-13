@@ -1,5 +1,6 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory, url_for
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit, join_room, leave_room
 import socket
 import platform
 import os
@@ -7,13 +8,18 @@ from werkzeug.utils import secure_filename
 import json
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS for all routes
+CORS(app, resources={r"/*": {"origins": "*"}})
+socketio = SocketIO(app, cors_allowed_origins="*")
+
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 # Create uploads folder if it doesn't exist
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
+
+# Store connected clients
+connected_clients = {}
 
 def get_device_info():
     hostname = socket.gethostname()
@@ -59,6 +65,7 @@ def upload_file():
     if file:
         filename = secure_filename(file.filename)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        socketio.emit('file_uploaded', {'filename': filename}, broadcast=True)
         return jsonify({
             'message': 'File uploaded successfully',
             'filename': filename
@@ -81,5 +88,25 @@ def list_files():
 def download_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
 
+@socketio.on('connect')
+def handle_connect():
+    client_id = request.sid
+    device_info = get_device_info()
+    connected_clients[client_id] = device_info
+    emit('client_connected', {'client': device_info}, broadcast=True)
+    emit('update_clients', {'clients': list(connected_clients.values())}, broadcast=True)
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    client_id = request.sid
+    if client_id in connected_clients:
+        device_info = connected_clients.pop(client_id)
+        emit('client_disconnected', {'client': device_info}, broadcast=True)
+        emit('update_clients', {'clients': list(connected_clients.values())}, broadcast=True)
+
+@socketio.on('file_uploaded')
+def handle_file_upload(data):
+    emit('refresh_files', broadcast=True)
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=8000, debug=True)

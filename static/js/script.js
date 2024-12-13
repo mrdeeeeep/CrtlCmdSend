@@ -1,4 +1,35 @@
+let socket;
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Socket.IO
+    socket = io();
+
+    socket.on('connect', () => {
+        console.log('Connected to server');
+        addLogEntry('Connected to server');
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Disconnected from server');
+        addLogEntry('Disconnected from server');
+    });
+
+    socket.on('client_connected', (data) => {
+        addLogEntry(`Client connected: ${data.client.name} (${data.client.ip})`);
+    });
+
+    socket.on('client_disconnected', (data) => {
+        addLogEntry(`Client disconnected: ${data.client.name} (${data.client.ip})`);
+    });
+
+    socket.on('update_clients', (data) => {
+        updateClientList(data.clients);
+    });
+
+    socket.on('refresh_files', () => {
+        refreshFileList();
+    });
+
     // Toggle sidebar
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.getElementById('sidebar');
@@ -45,10 +76,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // If we're on the server page, start refreshing the file list
-    if (document.querySelector('.server-mode-active')) {
+    // Initial file list refresh
+    if (document.querySelector('.server-mode-active') || document.querySelector('.client-mode-active')) {
         refreshFileList();
-        setInterval(refreshFileList, 5000); // Refresh every 5 seconds
     }
 });
 
@@ -63,11 +93,26 @@ function uploadFile(file) {
     .then(response => response.json())
     .then(data => {
         addLogEntry(`File uploaded: ${data.filename}`);
-        refreshFileList();
+        socket.emit('file_uploaded', { filename: data.filename });
     })
     .catch(error => {
         addLogEntry(`Error uploading file: ${error}`);
     });
+}
+
+function updateClientList(clients) {
+    const clientList = document.getElementById('clientList');
+    if (clientList) {
+        clientList.innerHTML = clients.length ? '' : '<p>No clients connected</p>';
+        clients.forEach(client => {
+            clientList.innerHTML += `
+                <div class="client-item">
+                    <span class="client-name">${client.name}</span>
+                    <span class="client-ip">${client.ip}</span>
+                </div>
+            `;
+        });
+    }
 }
 
 function refreshFileList() {

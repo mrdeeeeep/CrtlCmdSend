@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CtrlCmdSend - Server Mode</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 </head>
 <body>
     <div class="app-container server-mode-active">
@@ -80,6 +81,9 @@
                             <input type="file" id="fileInput" multiple style="display: none;">
                             <button class="upload-button" onclick="document.getElementById('fileInput').click()">Choose Files</button>
                         </div>
+                    </div>
+                    <div id="clientList" class="client-list">
+                        <p>No clients connected</p>
                     </div>
                 </div>
             </main>
