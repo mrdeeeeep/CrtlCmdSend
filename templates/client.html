@@ -19,7 +19,7 @@
                 <h3>Connection Log</h3>
             </div>
             <div class="sidebar-content">
-                <div class="log-entry">Client ready...</div>
+                <div class="log-entry">System initialized...</div>
             </div>
         </aside>
 
@@ -36,51 +36,27 @@
                             <h2>Connection Information</h2>
                         </div>
                         <div class="connection-content">
-                            <div class="device-info">
+                            <div class="server-info">
                                 <div class="info-group">
-                                    <strong>Device Name:</strong>
-                                    <span id="deviceName">Loading...</span>
+                                    <strong>Server Name:</strong>
+                                    <span id="serverName">Not connected</span>
                                 </div>
                                 <div class="info-group">
-                                    <strong>IP Address:</strong>
-                                    <span id="deviceIp">Loading...</span>
-                                </div>
-                            </div>
-                            <div class="server-connection">
-                                <div class="input-group">
-                                    <input type="text" id="serverIp" placeholder="Enter server IP address" class="ip-input">
-                                    <button class="connect-button" id="connectButton">Connect</button>
+                                    <strong>Server IP:</strong>
+                                    <span id="serverIp">-</span>
                                 </div>
                                 <div class="status-indicator">
                                     <span class="status-dot"></span>
-                                    <span class="status-text">Ready to connect</span>
+                                    <span class="status-text">Disconnected</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <div class="file-sharing-section">
-                        <div class="file-list">
-                            <h3>Shared Files</h3>
-                            <div class="dropzone" id="fileDropzone">
-                                <div class="dropzone-text">Drop files here or click to select</div>
-                            </div>
-                            <div class="files-container" id="sharedFiles">
-                                <!-- Files will be listed here dynamically -->
-                            </div>
-                        </div>
-                        
-                        <div class="transfer-status">
-                            <h3>Transfer Progress</h3>
-                            <div class="progress-container" id="progressContainer">
-                                <!-- Transfer progress will be shown here -->
-                            </div>
-                        </div>
-                    </div>
+                    
                     <div class="file-sharing-section">
                         <h3>Available Files</h3>
-                        <div class="file-list" id="availableFiles">
-                            <p>Connect to server to see available files</p>
+                        <div class="files-container" id="availableFiles">
+                            <p>No files available</p>
                         </div>
                     </div>
                 </div>

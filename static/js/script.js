@@ -13,13 +13,20 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Connected to server');
         addLogEntry('Connected to server');
         updateConnectionStatus('Connected', true);
+        
+        // Request initial file list
+        if (!isServerMode) {
+            socket.emit('request_files');
+        }
     });
 
     socket.on('disconnect', () => {
         console.log('Disconnected from server');
         addLogEntry('Disconnected from server');
         updateConnectionStatus('Disconnected', false);
-        updateClientInfo(null);
+        if (isServerMode) {
+            updateClientInfo(null);
+        }
     });
 
     // Server-specific events
@@ -57,27 +64,14 @@ document.addEventListener('DOMContentLoaded', function() {
         socket.on('connection_established', (data) => {
             console.log('Connected to server:', data);
             addLogEntry(`Connected to server: ${data.server.name} (${data.server.ip})`);
+            updateServerInfo(data.server);
             updateConnectionStatus('Connected to Server', true);
         });
 
-        socket.on('update_files', (data) => {
-            const availableFiles = document.getElementById('availableFiles');
-            if (!data || data.length === 0) {
-                availableFiles.innerHTML = '<p>No files available</p>';
-                return;
-            }
-            
-            availableFiles.innerHTML = '';
-            data.forEach(file => {
-                const fileSize = formatFileSize(file.size);
-                availableFiles.innerHTML += `
-                    <div class="file-item">
-                        <span class="file-name">${file.name}</span>
-                        <span class="file-size">${fileSize}</span>
-                        <a href="${file.url}" class="download-button" download>Download</a>
-                    </div>
-                `;
-            });
+        // Listen for file updates
+        socket.on('files_updated', (data) => {
+            console.log('Files updated:', data);
+            updateAvailableFiles(data.files);
         });
     }
 
@@ -209,11 +203,56 @@ function refreshFileList() {
                     <div class="file-item">
                         <span class="file-name">${file.name}</span>
                         <span class="file-size">${fileSize}</span>
-                        <a href="${file.url}" class="download-button" download>Download</a>
+                        <div class="file-actions">
+                            <a href="${file.url}" class="download-button" download>Download</a>
+                            <button class="delete-button" onclick="deleteFile('${file.name}')">Delete</button>
+                        </div>
                     </div>
                 `;
             });
         });
+}
+
+function updateAvailableFiles(files) {
+    const availableFiles = document.getElementById('availableFiles');
+    
+    if (!files || files.length === 0) {
+        availableFiles.innerHTML = '<p>No files available</p>';
+        return;
+    }
+    
+    availableFiles.innerHTML = '';
+    files.forEach(file => {
+        const fileSize = formatFileSize(file.size);
+        availableFiles.innerHTML += `
+            <div class="file-item">
+                <span class="file-name">${file.name}</span>
+                <span class="file-size">${fileSize}</span>
+                <a href="${file.url}" class="download-button" download>Download</a>
+            </div>
+        `;
+    });
+}
+
+function deleteFile(filename) {
+    if (!confirm(`Are you sure you want to delete "${filename}"?`)) {
+        return;
+    }
+
+    fetch(`/delete/${encodeURIComponent(filename)}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            addLogEntry(`Error deleting file: ${data.error}`);
+        } else {
+            addLogEntry(`File deleted: ${filename}`);
+        }
+    })
+    .catch(error => {
+        addLogEntry(`Error deleting file: ${error}`);
+    });
 }
 
 function connectToServer(serverIp) {
@@ -347,5 +386,36 @@ function updateClientList(clients) {
                 </div>
             `;
         });
+    }
+}
+
+function updateAvailableFiles(files) {
+    const availableFiles = document.getElementById('availableFiles');
+    
+    if (!files || files.length === 0) {
+        availableFiles.innerHTML = '<p>No files available</p>';
+        return;
+    }
+    
+    availableFiles.innerHTML = '';
+    files.forEach(file => {
+        const fileSize = formatFileSize(file.size);
+        availableFiles.innerHTML += `
+            <div class="file-item">
+                <span class="file-name">${file.name}</span>
+                <span class="file-size">${fileSize}</span>
+                <a href="${file.url}" class="download-button" download>Download</a>
+            </div>
+        `;
+    });
+}
+
+function updateServerInfo(server) {
+    const serverName = document.getElementById('serverName');
+    const serverIp = document.getElementById('serverIp');
+    
+    if (serverName && serverIp && server) {
+        serverName.textContent = server.name;
+        serverIp.textContent = server.ip;
     }
 }

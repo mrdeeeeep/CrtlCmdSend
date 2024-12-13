@@ -317,44 +317,53 @@ body {
 .file-item {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 0.75rem;
-    background-color: var(--bg-secondary);
-    border-radius: var(--border-radius);
-    margin-bottom: 0.5rem;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    gap: 10px;
 }
 
-.file-item.loading {
-    opacity: 0.7;
-}
-
-.file-item .file-name {
+.file-name {
     flex: 1;
     font-weight: 500;
 }
 
-.file-item .file-size {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+.file-size {
+    color: #666;
+    margin-right: 10px;
 }
 
-.file-item .upload-status {
-    color: var(--accent-primary);
-    font-size: 0.9rem;
+.file-actions {
+    display: flex;
+    gap: 8px;
 }
 
-.file-item .download-button {
-    background-color: var(--accent-primary);
+.download-button {
+    background-color: #4CAF50;
     color: white;
-    padding: 0.5rem 1rem;
-    border-radius: var(--border-radius);
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
     text-decoration: none;
-    font-size: 0.9rem;
-    transition: background-color var(--transition-speed);
+    font-size: 14px;
 }
 
-.file-item .download-button:hover {
-    background-color: var(--accent-hover);
+.download-button:hover {
+    background-color: #45a049;
+}
+
+.delete-button {
+    background-color: #f44336;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.delete-button:hover {
+    background-color: #da190b;
 }
 
 .progress-container {

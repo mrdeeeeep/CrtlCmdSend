@@ -37,6 +37,18 @@ def get_device_info():
         "ip": ip_address
     }
 
+def get_file_list():
+    files = []
+    for filename in os.listdir(app.config['UPLOAD_FOLDER']):
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if os.path.isfile(file_path):
+            files.append({
+                'name': filename,
+                'size': os.path.getsize(file_path),
+                'url': url_for('download_file', filename=filename)
+            })
+    return files
+
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')  # Use eventlet as async_mode
 
 @app.route('/')
@@ -68,7 +80,13 @@ def upload_file():
         if file:
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            socketio.emit('file_uploaded', {'filename': filename}, broadcast=True)
+            
+            # Get updated file list
+            files = get_file_list()
+            
+            # Emit file update to all connected clients
+            socketio.emit('files_updated', {'files': files}, broadcast=True)
+            
             return jsonify({
                 'message': 'File uploaded successfully',
                 'filename': filename
@@ -78,20 +96,30 @@ def upload_file():
 
 @app.route('/files', methods=['GET'])
 def list_files():
-    files = []
-    for filename in os.listdir(app.config['UPLOAD_FOLDER']):
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        if os.path.isfile(file_path):
-            files.append({
-                'name': filename,
-                'size': os.path.getsize(file_path),
-                'url': url_for('download_file', filename=filename)
-            })
-    return jsonify(files)
+    return jsonify(get_file_list())
 
 @app.route('/download/<filename>')
 def download_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+
+@app.route('/delete/<filename>', methods=['DELETE'])
+def delete_file(filename):
+    try:
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(filename))
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            
+            # Get updated file list
+            files = get_file_list()
+            
+            # Emit file update to all connected clients
+            socketio.emit('files_updated', {'files': files}, broadcast=True)
+            
+            return jsonify({'message': 'File deleted successfully'})
+        else:
+            return jsonify({'error': 'File not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @socketio.on('connect')
 def handle_connect():
@@ -128,9 +156,11 @@ def handle_disconnect():
         if server_sid:
             emit('client_disconnected', {'client': device_info}, to=server_sid)
 
-@socketio.on('file_uploaded')
-def handle_file_upload(data):
-    emit('refresh_files', broadcast=True)
+@socketio.on('request_files')
+def handle_file_request():
+    """Handle client requests for file list updates"""
+    files = get_file_list()
+    emit('files_updated', {'files': files})
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=8000, debug=True, allow_unsafe_werkzeug=True)
