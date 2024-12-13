@@ -108,26 +108,63 @@ function refreshFileList() {
 
 function connectToServer(serverIp) {
     const baseUrl = `http://${serverIp}:8000`;
-    fetch(`${baseUrl}/files`)
-        .then(response => response.json())
-        .then(files => {
-            addLogEntry(`Connected to server at ${serverIp}`);
-            const availableFiles = document.getElementById('availableFiles');
-            availableFiles.innerHTML = files.length ? '' : '<p>No files available</p>';
-            files.forEach(file => {
-                const fileSize = formatFileSize(file.size);
-                availableFiles.innerHTML += `
-                    <div class="file-item">
-                        <span class="file-name">${file.name}</span>
-                        <span class="file-size">${fileSize}</span>
-                        <a href="${baseUrl}${file.url}" class="download-button" download>Download</a>
-                    </div>
-                `;
-            });
-        })
-        .catch(error => {
-            addLogEntry(`Error connecting to server: ${error}`);
+    
+    // First test the connection
+    fetch(`${baseUrl}/get_device_info`, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+            'Accept': 'application/json',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        addLogEntry(`Connected to server: ${data.name} (${data.ip})`);
+        // Now get the file list
+        return fetch(`${baseUrl}/files`, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Accept': 'application/json',
+            }
         });
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(files => {
+        const availableFiles = document.getElementById('availableFiles');
+        if (!files || files.length === 0) {
+            availableFiles.innerHTML = '<p>No files available</p>';
+            return;
+        }
+        
+        availableFiles.innerHTML = '';
+        files.forEach(file => {
+            const fileSize = formatFileSize(file.size);
+            availableFiles.innerHTML += `
+                <div class="file-item">
+                    <span class="file-name">${file.name}</span>
+                    <span class="file-size">${fileSize}</span>
+                    <a href="${baseUrl}${file.url}" class="download-button" download>Download</a>
+                </div>
+            `;
+        });
+    })
+    .catch(error => {
+        console.error('Connection error:', error);
+        addLogEntry(`Error connecting to server: ${error.message}`);
+        const availableFiles = document.getElementById('availableFiles');
+        availableFiles.innerHTML = '<p class="error-message">Failed to connect to server. Please check the IP address and make sure the server is running.</p>';
+    });
 }
 
 function formatFileSize(bytes) {

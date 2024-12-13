@@ -1,4 +1,5 @@
 from flask import Flask, render_template, jsonify, request, send_from_directory, url_for
+from flask_cors import CORS
 import socket
 import platform
 import os
@@ -6,6 +7,7 @@ from werkzeug.utils import secure_filename
 import json
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS for all routes
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
