@@ -1,8 +1,14 @@
 let socket;
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Socket.IO with mode parameter
     const isServerMode = document.querySelector('.server-mode-active') !== null;
+    
+    // Initialize device info for client mode
+    if (!isServerMode) {
+        initializeClientMode();
+    }
+
+    // Initialize Socket.IO with mode parameter
     socket = io({
         query: {
             mode: isServerMode ? 'server' : 'client'
@@ -14,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
         addLogEntry('Connected to server');
         updateConnectionStatus('Connected', true);
         
-        // Request initial file list
+        // Request initial file list for client mode
         if (!isServerMode) {
             socket.emit('request_files');
         }
@@ -31,48 +37,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Server-specific events
     if (isServerMode) {
-        socket.on('server_connected', (data) => {
-            console.log('Server mode initialized');
-            addLogEntry('Server mode initialized');
-            // Update server device info
-            updateDeviceInfo(data.server);
-        });
-
-        socket.on('client_connected', (data) => {
-            console.log('Client connected:', data);
-            addLogEntry(`Client connected: ${data.client.name} (${data.client.ip})`);
-            updateClientInfo(data.client);
-            updateConnectionStatus('Client Connected', true);
-        });
-
-        socket.on('client_disconnected', (data) => {
-            addLogEntry(`Client disconnected: ${data.client.name} (${data.client.ip})`);
-            updateClientInfo(null);
-            updateConnectionStatus('Waiting for client...', false);
-        });
-
-        socket.on('update_clients', (data) => {
-            updateClientList(data.clients);
-        });
-
-        socket.on('refresh_files', () => {
-            refreshFileList();
-        });
+        initializeServerMode();
     } 
     // Client-specific events
     else {
-        socket.on('connection_established', (data) => {
-            console.log('Connected to server:', data);
-            addLogEntry(`Connected to server: ${data.server.name} (${data.server.ip})`);
-            updateServerInfo(data.server);
-            updateConnectionStatus('Connected to Server', true);
-        });
-
-        // Listen for file updates
-        socket.on('files_updated', (data) => {
-            console.log('Files updated:', data);
-            updateAvailableFiles(data.files);
-        });
+        initializeClientEvents();
     }
 
     // Toggle sidebar
@@ -84,16 +53,6 @@ document.addEventListener('DOMContentLoaded', function() {
             sidebar.classList.toggle('active');
             sidebarToggle.classList.toggle('active');
         });
-    }
-
-    // Get device info
-    if (isServerMode) {
-        fetch('/get_device_info')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('deviceName').textContent = data.name;
-                document.getElementById('deviceIp').textContent = data.ip;
-            });
     }
 
     // File upload handling
@@ -135,24 +94,88 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Client connection handling
-    const connectButton = document.getElementById('connectButton');
-    const serverIpInput = document.getElementById('serverIp');
-    
-    if (connectButton && serverIpInput) {
-        connectButton.addEventListener('click', function() {
-            const serverIp = serverIpInput.value.trim();
-            if (serverIp) {
-                connectToServer(serverIp);
-            }
-        });
-    }
-
     // Initial file list refresh
     if (document.querySelector('.server-mode-active')) {
         refreshFileList();
     }
 });
+
+function initializeClientMode() {
+    // Get device information
+    fetch('/device_info')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('deviceName').textContent = data.name;
+            document.getElementById('deviceIp').textContent = data.ip;
+        });
+
+    // Setup connect button
+    const connectButton = document.getElementById('connectButton');
+    const serverIpInput = document.getElementById('serverIp');
+
+    if (connectButton && serverIpInput) {
+        connectButton.addEventListener('click', () => {
+            const serverIp = serverIpInput.value.trim();
+            if (serverIp) {
+                connectToServer(serverIp);
+            }
+        });
+
+        // Allow Enter key to trigger connection
+        serverIpInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const serverIp = serverIpInput.value.trim();
+                if (serverIp) {
+                    connectToServer(serverIp);
+                }
+            }
+        });
+    }
+}
+
+function initializeClientEvents() {
+    socket.on('connection_established', (data) => {
+        console.log('Connected to server:', data);
+        addLogEntry(`Connected to server: ${data.server.name} (${data.server.ip})`);
+        updateConnectionStatus('Connected to Server', true);
+    });
+
+    // Listen for file updates
+    socket.on('files_updated', (data) => {
+        console.log('Files updated:', data);
+        updateAvailableFiles(data.files);
+    });
+}
+
+function initializeServerMode() {
+    socket.on('server_connected', (data) => {
+        console.log('Server mode initialized');
+        addLogEntry('Server mode initialized');
+        // Update server device info
+        updateDeviceInfo(data.server);
+    });
+
+    socket.on('client_connected', (data) => {
+        console.log('Client connected:', data);
+        addLogEntry(`Client connected: ${data.client.name} (${data.client.ip})`);
+        updateClientInfo(data.client);
+        updateConnectionStatus('Client Connected', true);
+    });
+
+    socket.on('client_disconnected', (data) => {
+        addLogEntry(`Client disconnected: ${data.client.name} (${data.client.ip})`);
+        updateClientInfo(null);
+        updateConnectionStatus('Waiting for client...', false);
+    });
+
+    socket.on('update_clients', (data) => {
+        updateClientList(data.clients);
+    });
+
+    socket.on('refresh_files', () => {
+        refreshFileList();
+    });
+}
 
 function uploadFile(file) {
     const formData = new FormData();
@@ -335,17 +358,13 @@ function addLogEntry(message) {
     }
 }
 
-function updateConnectionStatus(status, isConnected) {
-    const statusText = document.querySelector('.status-text');
+function updateConnectionStatus(status, connected) {
     const statusDot = document.querySelector('.status-dot');
+    const statusText = document.querySelector('.status-text');
     
-    if (statusText && statusDot) {
+    if (statusDot && statusText) {
+        statusDot.style.backgroundColor = connected ? '#4CAF50' : '#999';
         statusText.textContent = status;
-        if (isConnected) {
-            statusDot.classList.add('connected');
-        } else {
-            statusDot.classList.remove('connected');
-        }
     }
 }
 
@@ -387,27 +406,6 @@ function updateClientList(clients) {
             `;
         });
     }
-}
-
-function updateAvailableFiles(files) {
-    const availableFiles = document.getElementById('availableFiles');
-    
-    if (!files || files.length === 0) {
-        availableFiles.innerHTML = '<p>No files available</p>';
-        return;
-    }
-    
-    availableFiles.innerHTML = '';
-    files.forEach(file => {
-        const fileSize = formatFileSize(file.size);
-        availableFiles.innerHTML += `
-            <div class="file-item">
-                <span class="file-name">${file.name}</span>
-                <span class="file-size">${fileSize}</span>
-                <a href="${file.url}" class="download-button" download>Download</a>
-            </div>
-        `;
-    });
 }
 
 function updateServerInfo(server) {
