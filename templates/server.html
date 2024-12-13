@@ -63,21 +63,22 @@
                         </div>
                     </div>
                     <div class="file-sharing-section">
-                        <div class="file-list">
-                            <h3>Shared Files</h3>
-                            <div class="dropzone" id="fileDropzone">
-                                <div class="dropzone-text">Drop files here or click to select</div>
-                            </div>
-                            <div class="files-container" id="sharedFiles">
-                                <!-- Files will be listed here dynamically -->
-                            </div>
+                        <h3>Shared Files</h3>
+                        <div class="dropzone" id="fileDropzone">
+                            <div class="dropzone-text">Drop files here or click to select</div>
                         </div>
-                        
-                        <div class="transfer-status">
-                            <h3>Transfer Progress</h3>
-                            <div class="progress-container" id="progressContainer">
-                                <!-- Transfer progress will be shown here -->
-                            </div>
+                        <div class="files-container" id="sharedFiles">
+                            <!-- Files will be listed here dynamically -->
+                        </div>
+                    </div>
+                    <div class="file-sharing-section">
+                        <h3>File Sharing</h3>
+                        <div class="file-list" id="fileList">
+                            <p>No files shared yet</p>
+                        </div>
+                        <div class="upload-area" id="uploadArea">
+                            <input type="file" id="fileInput" multiple style="display: none;">
+                            <button class="upload-button" onclick="document.getElementById('fileInput').click()">Choose Files</button>
                         </div>
                     </div>
                 </div>
